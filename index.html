@@ -16,7 +16,7 @@
 
         const room = joinRoom(config, '0');
 
-        test.innerHTML += `You are ${selfId}`;
+        text.innerHTML += `You are ${selfId}`;
 
         room.onPeerJoin((peerId) => function(){
             text.innerHTML += `${peerId} joined`;
