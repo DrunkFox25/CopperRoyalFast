@@ -43,13 +43,13 @@ function genPoints(n, a, b, color){
     return boomPart;
 }
 
-function drawBoomPart(ctx, boomPart){
+function drawBoomPart(ctx, boomPart, t){
     ctx.fillStyle = boomPart.colorOuter;
 
     ctx.beginPath();
 
     outer.forEach((coord) => {
-        ctx.arc(coord.x, coord.y, boomPart.outerRadius, 0, Math.PI * 2);
+        ctx.arc(coord.x*t, coord.y*t, boomPart.outerRadius, 0, Math.PI * 2);
     });
 
     ctx.fill();
@@ -59,16 +59,26 @@ function drawBoomPart(ctx, boomPart){
     ctx.beginPath();
 
     outer.forEach((coord) => {
-        ctx.arc(coord.x, coord.y, boomPart.innerRadius, 0, Math.PI * 2);
+        ctx.arc(coord.x*t, coord.y*t, boomPart.innerRadius, 0, Math.PI * 2);
     });
 
     ctx.fill();
 }
 
-function drawBoom(ctx){
-    drawBoomPart(ctx, genPoints(500, 40, 65, '#c7444a'));
-    drawBoomPart(ctx, genPoints(500, 25, 50, '#fa7e19'));
-    drawBoomPart(ctx, genPoints(500, 10, 35, '#fff701'));
+
+
+function genBoom(){
+    return {
+        outer: genPoints(500, 40, 65, '#c7444a'),
+        middl: genPoints(500, 25, 50, '#fa7e19'),
+        inner: genPoints(500, 10, 35, '#fff701')
+    };
+}
+
+function drawBoom(ctx, boom, t){//t is 0 to 1
+    drawBoomPart(ctx, boom.outer, t);
+    drawBoomPart(ctx, boom.middl, t);
+    drawBoomPart(ctx, boom.inner, t);
 }
 
 
