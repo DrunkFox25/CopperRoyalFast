@@ -35,4 +35,4 @@ getHello((str, peerId) => {
     text.innerHTML += `${peerId} says ${str}<br>`
 });
 
-hello.onclick = () => {sendHello('hi');}
+hello.onclick = function(){sendHello('hi');};
