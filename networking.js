@@ -13,25 +13,30 @@ let hostId;
 
 let playerNum;//used for knowing who is playing, who is chosen from the lobby of possibly more
 
-getHost((pNum, peerId) => function(){playerNum = pNum; hostId = peerId;});
 
-let currPing;
 
-let pingCycleId;
+const idSpan = document.getElementById("id");
 
-function pingCycle(expected) {
-  currPing = room.ping(hostId);
+idSpan.innerHTML = `Net Id = ${selfId}`;
 
-  expected += 1000;
-  next = Math.max(expected-performance.now(), 0);
-  pingCycleId = setTimeout(pingCycle, next, expected);
+const playerSpan = document.getElementById("player");
+
+getHost((pNum, peerId) => {playerNum = pNum; hostId = peerId; playerSpan.innerHTML = `You are player number ${PlayerNum}    `;});
+
+const pingSpan = document.getElementById("ping");
+
+let pingCycleId;//for canceling ping cycle
+
+async function pingCycle(curr){
+  pingSpan.innerHTML = `PING: ${await room.ping(hostId)}ms`;
+
+  
+  next = Math.max(curr+1000-performance.now(), 0);
+  pingCycleId = setTimeout(pingCycle, next, curr+next);
 }
 
+pingCycle(performance.now());
 
-
-
-
-const JButt = document.getElementById("J");const LButt = document.getElementById("L");
 
 
 

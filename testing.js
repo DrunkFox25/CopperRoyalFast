@@ -14,27 +14,24 @@ const config = {
     }
 };
 
-const text = document.getElementById("testing");
-const hello = document.getElementById("hello");
-
 
 const room = joinRoom(config, '0');
 
-text.innerHTML += `You are ${selfId}<br>`;
+console.log(`You are ${selfId}`);
 
 room.onPeerJoin(async (peerId) => {
-    text.innerHTML += `${peerId} joined<br>`;
-    text.innerHTML += `to ${peerId} ping is ${await room.ping(peerId)}ms<br>`
+    console.log(`${peerId} joined`);
+    console.log(`to ${peerId} ping is ${await room.ping(peerId)}ms`);
 });
 
 room.onPeerLeave(async (peerId) => {
-    text.innerHTML += `${peerId} left<br>`;
+    console.log(`${peerId} left`);
 });
 
 const [sendHello, getHello] = room.makeAction('hell');
 
 getHello((str, peerId) => {
-    text.innerHTML += `${peerId} says ${str}<br>`
+    console.log(`${peerId} says ${str}`);
 });
 
 hello.onclick = function(){sendHello('hi');};

@@ -61,7 +61,7 @@ const [base, exec] = sliceURL(url);
 const urlVals = new Map();
 
 
-exec.forEach(line => function(){
+exec.forEach(line => {
     let cd = line.split('=');
 
     if(cd.length == 1){
