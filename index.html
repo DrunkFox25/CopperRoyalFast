@@ -4,41 +4,11 @@
     </head>
     <body>
 
+        <button onclick="hello()">SEND HELLO</button>
+
         <span id="testing"></span>
 
     </body>
 
-    <script type="module">
-        import {joinRoom, selfId} from 'https://esm.run/trystero';
-        
-        const config = {
-            appId: 'FastCopperRoyal',
-            turnConfig: [
-                {
-                    urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                }
-            ],
-            rtcConfig: {
-                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-            }
-        };
-
-        const text = document.getElementById("testing");
-
-        const room = joinRoom(config, '0');
-
-        text.innerHTML += `You are ${selfId}<br>`;
-
-        room.onPeerJoin((peerId) => {
-            text.innerHTML += `${peerId} joined<br>`;
-        });
-
-        room.onPeerLeave((peerId) => {
-            text.innerHTML += `${peerId} left<br>`;
-        });
-
-
-    </script>
+    <script type="module" src="testing.js"></script>
 </html>
