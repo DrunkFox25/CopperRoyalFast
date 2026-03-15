@@ -1,13 +1,6 @@
-const canvas = document.getElementById("game");
-//const ctx = canvas.getContext('2d');
-//let playerSvg = await Canvg.from(ctx, 'chopper.svg');
 
 
 
-
-function clear(ctx){
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
 
 function drawPlayer(ctx, playerSvg, color) {
     playerSvg.documentElement.setAttribute('fill', color);
@@ -75,7 +68,7 @@ function genBoom(){
     };
 }
 
-function drawBoom(ctx, boom, t){//t is 0 to 1
+function drawBoom(ctx, boom, t){//t is 0 to 1   ~ 1 sec
     drawBoomPart(ctx, boom.outer, t);
     drawBoomPart(ctx, boom.middl, t);
     drawBoomPart(ctx, boom.inner, t);
@@ -83,29 +76,20 @@ function drawBoom(ctx, boom, t){//t is 0 to 1
 
 
 
-function animate() {
-      // Clear the canvas for the new frame
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw and update each circl
-      ctx.beginPath(); // Start a single path for better performance
-
-        draw
-
-      // Request the next frame
-      requestAnimationFrame(animate);
-    }
-
-    // Start the animation
-    animate();
 
 
 
 
-    /*
-
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext('2d');
+const playerSvg = await Canvg.from(ctx, 'chopper.svg');
 let drawloopid;
-function drawloop(){
+
+function drawloop(time){
+    updateState(time);
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     ctx.save();
 
     ctx.translate(x, y);
@@ -119,6 +103,4 @@ function drawloop(){
     drawloopid = requestAnimationFrame(drawloop);
 }
 
-
-
-*/
+drawloop(performance.now());
