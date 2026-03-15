@@ -16,19 +16,18 @@ const config = {
 
 const text = document.getElementById("testing");
 const hello = document.getElementById("hello");
-const pingspan = document.getElementById("ping");
-const pingid = document.getElementById("pingid");
 
 
 const room = joinRoom(config, '0');
 
 text.innerHTML += `You are ${selfId}<br>`;
 
-room.onPeerJoin((peerId) => {
+room.onPeerJoin(async (peerId) => {
     text.innerHTML += `${peerId} joined<br>`;
+    text.innerHTML += `to ${peerId} ping is ${await room.ping(peerId)}ms<br>`
 });
 
-room.onPeerLeave((peerId) => {
+room.onPeerLeave(async (peerId) => {
     text.innerHTML += `${peerId} left<br>`;
 });
 
@@ -41,14 +40,3 @@ getHello((str, peerId) => {
 hello.onclick = function(){sendHello('hi');};
 
 
-
-
-function pingCycle(expected) {
-  if(pingid.innerHTML.length > 3) pingspan.innerHTML = `ping: ${room.ping(pingid.innerHTML)}`;
-
-  expected += 1000;
-  next = Math.max(expected-performance.now(), 0);
-  pingCycleId = setTimeout(pingCycle, next, expected);
-}
-
-pingCycle(performance.now());
