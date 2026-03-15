@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+
+        <span id="testing"></span>
+
+    </body>
+
+    <script>
+        import {joinRoom, selfId} from 'https://esm.run/trystero';
+        const config = {appId: 'FastCopperRoyal'};
+
+        const text = document.getElementById("testing");
+
+        const room = joinRoom(config, '0');
+
+        test.innerHTML += `You are ${selfId}`;
+
+        room.onPeerJoin((peerId) => function(){
+            text.innerHTML += `${peerId} joined`;
+        });
+
+        room.onPeerLeave((peerId) => function(){
+            text.innerHTML += `${peerId} left`;
+        });
+
+
+    </script>
+</html>

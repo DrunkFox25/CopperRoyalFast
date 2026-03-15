@@ -7,34 +7,59 @@ roomID = urlVals['roomID'];
 
 const room = joinRoom(config, roomID);
 
-const hostmsg = "I am the host!"
-
-let state;
-
-const [sendState, getState] = room.makeAction('update');
 const [sendHost, getHost] = room.makeAction('indentify host');
 
 let hostId;
 
-getHost((str, peerId) => function(){if(str == hostmsg){hostId = peerId;}});
+let playerNum;//used for knowing who is playing, who is chosen from the lobby of possibly more
+
+getHost((pNum, peerId) => function(){playerNum = pNum; hostId = peerId;});
+
+let currPing;
+
+let pingCycleId;
+
+function pingCycle(expected) {
+  currPing = room.ping(hostId);
+
+  expected += 1000;
+  next = Math.max(expected-performance.now(), 0);
+  pingCycleId = setTimeout(pingCycle, next, expected);
+}
 
 
 
-console.log(`my peer ID is ${selfId}`);
+
 
 const JButt = document.getElementById("J");const LButt = document.getElementById("L");
 
-function J(roomID) {
-  
-  room.onPeerJoin((peerId) => console.log(`${peerId} joined`));
-  room.onPeerLeave((peerId) => console.log(`${peerId} left`));
 
-  LButt.onclick = room.leave;
-}
 
-JButt.onclick = J('100');
 
-function HostSetup(){
-    room.onPeerJoin((peerId) => function(){console.log(`${peerId} joined`); sendHost(hostmsg, peerId)});
-    room.onPeerLeave((peerId) => console.log(`${peerId} left`));
-}
+
+let state;
+
+const [sendState, getState] = room.makeAction('update');
+const [sendAction, getAction] = room.makeAction('action');
+
+
+/*
+
+let intervalId;
+
+function preciseCycle(expected) {
+  do shit
+
+  expected += 1000;
+  next = Math.max(expected-performance.now(), 0);
+  intervalId = setTimeout(preciseCycle, next, expected);
+}*/
+
+
+
+/*
+send state every action, Date.now()
+
+
+when sending state, send id, which will be verified
+*/
