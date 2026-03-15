@@ -15,6 +15,7 @@ const config = {
 };
 
 const text = document.getElementById("testing");
+const hello = document.getElementById("testing");
 
 const room = joinRoom(config, '0');
 
@@ -34,6 +35,4 @@ getHello((str, peerId) => {
     text.innerHTML += `${peerId} says ${str}<br>`
 });
 
-function hello(){
-    sendHello('hi');
-}
+hello.onclick = () => {sendHello('hi');}
