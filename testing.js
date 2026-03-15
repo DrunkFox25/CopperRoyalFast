@@ -15,7 +15,10 @@ const config = {
 };
 
 const text = document.getElementById("testing");
-const hello = document.getElementById("testing");
+const hello = document.getElementById("hello");
+const pingspan = document.getElementById("ping");
+const pingid = document.getElementById("pingid");
+
 
 const room = joinRoom(config, '0');
 
@@ -36,3 +39,16 @@ getHello((str, peerId) => {
 });
 
 hello.onclick = function(){sendHello('hi');};
+
+
+
+
+function pingCycle(expected) {
+  pingspan.innerHTML = `ping: ${room.ping(pingid.innerHTML)}`;
+
+  expected += 1000;
+  next = Math.max(expected-performance.now(), 0);
+  pingCycleId = setTimeout(pingCycle, next, expected);
+}
+
+pingCycle(performance.now());
