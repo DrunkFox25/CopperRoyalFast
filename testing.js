@@ -44,7 +44,7 @@ hello.onclick = function(){sendHello('hi');};
 
 
 function pingCycle(expected) {
-  pingspan.innerHTML = `ping: ${room.ping(pingid.innerHTML)}`;
+  if(pingid.innerHTML.length > 3) pingspan.innerHTML = `ping: ${room.ping(pingid.innerHTML)}`;
 
   expected += 1000;
   next = Math.max(expected-performance.now(), 0);
