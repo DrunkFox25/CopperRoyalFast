@@ -7,6 +7,37 @@ function sliceURL(url){
     return [url.slice(0,i), url.slice(i+1).split('&')];
 }
 
+
+
+
+
+const url = window.location.href;
+const [base, exec] = sliceURL(url);
+
+
+
+let urlVals = new Map();
+
+
+exec.forEach(line => {
+    let cd = line.split('=');
+
+    if(cd.length == 1){
+        if(cd[0][0] == '!'){
+            cd[0] = cd[0].slice(1);
+            cd.push("false");
+        }
+        else{
+            cd.push("true");
+        }
+    }
+
+    urlVals.set(cd[0], cd[1]);
+
+});
+
+
+
 /*
 function getEval(exec, safe){
     let toeval = [];
@@ -47,33 +78,3 @@ function getEval(exec, safe){
 getEval(exec, false).forEach(str => eval(str));
 
 */
-
-
-
-
-
-const url = window.location.href;
-const [base, exec] = sliceURL(url);
-
-
-
-
-const urlVals = new Map();
-
-
-exec.forEach(line => {
-    let cd = line.split('=');
-
-    if(cd.length == 1){
-        if(cd[0][0] == '!'){
-            cd[0] = cd[0].slice(1);
-            cd.push("false");
-        }
-        else{
-            cd.push("true");
-        }
-    }
-
-    urlVals.set(cd[0], cd[1]);
-
-});
