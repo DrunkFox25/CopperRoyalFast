@@ -22,7 +22,17 @@ jobs:
       - name: Fetch Skia Binaries
         run: |
           mkdir -p third_party/skia
-          curl -L https://github.com | tar -xzC third_party/skia
+          # We download a specific version (0.67.1) known to have Wasm binaries
+          # The -L flag follows redirects, which is critical for GitHub Releases
+          curl -L "https://github.com" -o skia.tar.gz
+          
+          # Check if it's actually a gzip file before extracting
+          if file skia.tar.gz | grep -q 'gzip compressed data'; then
+            tar -xzf skia.tar.gz -C third_party/skia
+          else
+            echo "Error: Downloaded file is not a valid tar.gz. Check the URL."
+            exit 1
+          fi
 
       - name: Compile C++ to Wasm
         run: |
