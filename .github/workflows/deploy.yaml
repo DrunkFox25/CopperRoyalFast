@@ -18,26 +18,28 @@ jobs:
         uses: mymindstorm/setup-emsdk@v14
         with:
           version: 3.1.51
-
-      - name: Fetch Skia Binaries
+     - name: Fetch Skia Binaries
         run: |
           echo "Searching for valid Skia Wasm binary in recent releases..."
           
-          # 1. Get the 10 most recent release tags
-          TAGS=$(gh release list --repo rust-skia/skia-binaries --limit 10 --exclude-drafts --exclude-pre-releases --json tagName -q '.[].tagName')
+          # 1. Get recent tags (INCLUDING pre-releases)
+          # bumped limit to 20 to be safe
+          TAGS=$(gh release list --repo rust-skia/skia-binaries --limit 20 --exclude-drafts --json tagName -q '.[].tagName')
           
           ASSET_URL=""
           
           # 2. Loop through tags to find one with a Wasm asset
           for TAG in $TAGS; do
             echo "Checking release: $TAG"
-            # Look for an asset containing 'wasm32-unknown-emscripten'
-            # We filter for 'GPL' or feature sets if needed, but usually just the arch is enough
+            
+            # Search for the specific emscripten binary
+            # We use 'head -n 1' because sometimes there might be multiple variants (e.g. gl/no-gl), picking the first is usually safe for linking
             URL=$(gh release view --repo rust-skia/skia-binaries "$TAG" --json assets \
               -q '.assets[] | select(.name | contains("wasm32-unknown-emscripten")) | .url' | head -n 1)
             
             if [ -n "$URL" ]; then
               echo "✅ Found Wasm binary in release $TAG"
+              echo "URL: $URL"
               ASSET_URL="$URL"
               break
             else
@@ -47,25 +49,25 @@ jobs:
           
           # 3. Fail if still nothing found
           if [ -z "$ASSET_URL" ]; then
-            echo "Error: Checked last 10 releases and found no 'wasm32-unknown-emscripten' binaries."
+            echo "Error: Checked last 20 releases and found no 'wasm32-unknown-emscripten' binaries."
+            echo "Possible cause: rust-skia binaries might be temporarily unavailable or naming conventions changed."
             exit 1
           fi
           
           # 4. Download and Extract
-          echo "Downloading: $ASSET_URL"
+          echo "Downloading Skia from $ASSET_URL"
           mkdir -p third_party/skia
           curl -L "$ASSET_URL" -o skia.tar.gz
           tar -xzf skia.tar.gz -C third_party/skia
           
-          # 5. (Optional) Fix directory structure if tarball structure varies
-          # Sometimes it unzips into a subdir. Ensure includes are where we expect.
+          # 5. Fix directory structure (Handle cases where tarball creates a 'skia' subdir)
           if [ -d "third_party/skia/skia" ]; then
+            echo "Flattening directory structure..."
             mv third_party/skia/skia/* third_party/skia/
             rmdir third_party/skia/skia
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
 
       - name: Compile C++ to Wasm
