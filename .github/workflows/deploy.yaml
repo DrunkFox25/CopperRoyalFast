@@ -21,18 +21,21 @@ jobs:
 
       - name: Fetch Skia Binaries
         run: |
-          mkdir -p third_party/skia
-          # We download a specific version (0.67.1) known to have Wasm binaries
-          # The -L flag follows redirects, which is critical for GitHub Releases
-          curl -L "https://github.com" -o skia.tar.gz
+          # Use GitHub CLI (pre-installed on runners) to find the correct asset URL
+          # We search for 'wasm32-unknown-emscripten' in the latest release of rust-skia/skia-binaries
+          ASSET_URL=$(gh release view --repo rust-skia/skia-binaries --json assets \
+            -q '.assets[] | select(.name | contains("wasm32-unknown-emscripten")) | .url' | head -n 1)
           
-          # Check if it's actually a gzip file before extracting
-          if file skia.tar.gz | grep -q 'gzip compressed data'; then
-            tar -xzf skia.tar.gz -C third_party/skia
-          else
-            echo "Error: Downloaded file is not a valid tar.gz. Check the URL."
+          if [ -z "$ASSET_URL" ]; then
+            echo "Error: Could not find a Wasm binary in the latest release."
             exit 1
           fi
+          
+          echo "Downloading from: $ASSET_URL"
+          mkdir -p third_party/skia
+          curl -L "$ASSET_URL" -o skia.tar.gz
+          tar -xzf skia.tar.gz -C third_party/skia
+
 
       - name: Compile C++ to Wasm
         run: |
