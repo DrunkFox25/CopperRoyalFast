@@ -21,20 +21,27 @@ jobs:
 
       - name: Fetch Skia Binaries
         run: |
-          # Use GitHub CLI (pre-installed on runners) to find the correct asset URL
-          # We search for 'wasm32-unknown-emscripten' in the latest release of rust-skia/skia-binaries
-          ASSET_URL=$(gh release view --repo rust-skia/skia-binaries --json assets \
+          # We search specifically for the emscripten target in the releases
+          # Using 'skia-binaries' as the search term to catch the new naming format
+          ASSET_URL=$(gh release view --repo rust-skia/skia-binaries 0.77.1 --json assets \
             -q '.assets[] | select(.name | contains("wasm32-unknown-emscripten")) | .url' | head -n 1)
           
           if [ -z "$ASSET_URL" ]; then
-            echo "Error: Could not find a Wasm binary in the latest release."
+            echo "Fallback: Searching latest release..."
+            ASSET_URL=$(gh release view --repo rust-skia/skia-binaries --json assets \
+              -q '.assets[] | select(.name | contains("wasm32-unknown-emscripten")) | .url' | head -n 1)
+          fi
+
+          if [ -z "$ASSET_URL" ]; then
+            echo "Error: Still could not find Wasm binary. Check rust-skia/skia-binaries for available assets."
             exit 1
           fi
           
-          echo "Downloading from: $ASSET_URL"
+          echo "Downloading: $ASSET_URL"
           mkdir -p third_party/skia
           curl -L "$ASSET_URL" -o skia.tar.gz
           tar -xzf skia.tar.gz -C third_party/skia
+
 
 
       - name: Compile C++ to Wasm
