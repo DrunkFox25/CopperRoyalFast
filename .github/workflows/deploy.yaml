@@ -1,0 +1,49 @@
+# writen by gemini
+
+name: Build and Deploy Skia Wasm
+on:
+  push:
+    branches: [ main ] # Runs every time you push to main
+
+permissions:
+  contents: write # Required to push to the gh-pages branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.51
+
+      - name: Fetch Skia Binaries
+        run: |
+          mkdir -p third_party/skia
+          curl -L https://github.com | tar -xzC third_party/skia
+
+      - name: Compile C++ to Wasm
+        run: |
+          # Create a 'dist' folder for the final website files
+          mkdir -p dist
+          # Move your existing HTML/CSS into dist
+          cp index.html dist/ 2>/dev/null || : 
+          
+
+          emcc src/*.cpp \
+            -Ithird_party/skia/include \
+            -Lthird_party/skia/out/Release \
+            -lskia -lGL \
+            -s WASM=1 \
+            -s USE_WEBGL2=1 \
+            -s ALLOW_MEMORY_GROWTH=1 \
+            --bind \
+            -o dist/skia_app.js
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist # This is the folder that gets turned into a website
+          branch: gh-pages # The hidden branch for your .wasm files
