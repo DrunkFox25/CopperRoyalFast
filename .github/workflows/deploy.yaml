@@ -21,26 +21,50 @@ jobs:
 
       - name: Fetch Skia Binaries
         run: |
-          # We search specifically for the emscripten target in the releases
-          # Using 'skia-binaries' as the search term to catch the new naming format
-          ASSET_URL=$(gh release view --repo rust-skia/skia-binaries 0.77.1 --json assets \
-            -q '.assets[] | select(.name | contains("wasm32-unknown-emscripten")) | .url' | head -n 1)
+          echo "Searching for valid Skia Wasm binary in recent releases..."
           
-          if [ -z "$ASSET_URL" ]; then
-            echo "Fallback: Searching latest release..."
-            ASSET_URL=$(gh release view --repo rust-skia/skia-binaries --json assets \
+          # 1. Get the 10 most recent release tags
+          TAGS=$(gh release list --repo rust-skia/skia-binaries --limit 10 --exclude-drafts --exclude-pre-releases --json tagName -q '.[].tagName')
+          
+          ASSET_URL=""
+          
+          # 2. Loop through tags to find one with a Wasm asset
+          for TAG in $TAGS; do
+            echo "Checking release: $TAG"
+            # Look for an asset containing 'wasm32-unknown-emscripten'
+            # We filter for 'GPL' or feature sets if needed, but usually just the arch is enough
+            URL=$(gh release view --repo rust-skia/skia-binaries "$TAG" --json assets \
               -q '.assets[] | select(.name | contains("wasm32-unknown-emscripten")) | .url' | head -n 1)
-          fi
-
+            
+            if [ -n "$URL" ]; then
+              echo "✅ Found Wasm binary in release $TAG"
+              ASSET_URL="$URL"
+              break
+            else
+              echo "❌ No Wasm binary in $TAG, skipping..."
+            fi
+          done
+          
+          # 3. Fail if still nothing found
           if [ -z "$ASSET_URL" ]; then
-            echo "Error: Still could not find Wasm binary. Check rust-skia/skia-binaries for available assets."
+            echo "Error: Checked last 10 releases and found no 'wasm32-unknown-emscripten' binaries."
             exit 1
           fi
           
+          # 4. Download and Extract
           echo "Downloading: $ASSET_URL"
           mkdir -p third_party/skia
           curl -L "$ASSET_URL" -o skia.tar.gz
           tar -xzf skia.tar.gz -C third_party/skia
+          
+          # 5. (Optional) Fix directory structure if tarball structure varies
+          # Sometimes it unzips into a subdir. Ensure includes are where we expect.
+          if [ -d "third_party/skia/skia" ]; then
+            mv third_party/skia/skia/* third_party/skia/
+            rmdir third_party/skia/skia
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
 
