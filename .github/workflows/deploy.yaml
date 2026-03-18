@@ -21,24 +21,26 @@ jobs:
 
       - name: Download and Extract Skia Wasm Binaries
         run: |
-          # Set the version you want
-          SKIA_VERSION="0.79.0"
+          # Specific version and filename from rust-skia releases
+          TAG="0.88.0"
+          # This specific hash includes freetype and textlayout support
+          FILE="skia-binaries-5389650d995c645e2270-wasm32-unknown-emscripten-freetype-textlayout.tar.gz"
+          URL="https://github.com"
           
-          # Download the tarball from rust-skia releases
-          curl -L -o skia-binaries.tar.gz \
-            https://github.com
+          echo "Fetching from $URL"
           
-          # Create a directory and extract
-          mkdir -p ./skia-lib
-          tar -xzf skia-binaries.tar.gz -C ./skia-lib
+          # -f ensures it fails if the file is missing (no 404 HTML download)
+          curl -f -L -o skia.tar.gz "$URL"
           
-          # List files to verify (you should see libskia.a and headers)
-          ls -R ./skia-lib
-
-      - name: Verify Binary
-        run: |
-          # Check if the static library exists
-          test -f ./skia-lib/libskia.a && echo "Skia binary found!"
+          # Verify file type before extracting
+          if file skia.tar.gz | grep -q 'gzip compressed data'; then
+            mkdir -p ./skia-lib
+            tar -xzf skia.tar.gz -C ./skia-lib
+            echo "Successfully extracted Skia binaries."
+          else
+            echo "ERROR: Download failed or file is corrupt."
+            exit 1
+          fi
 
 
       - name: Compile C++ to Wasm
