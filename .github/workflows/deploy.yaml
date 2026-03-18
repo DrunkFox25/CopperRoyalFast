@@ -19,32 +19,32 @@ jobs:
         with:
           version: 3.1.51
 
-      - name: Download and Extract Skia Wasm Binaries
+      - name: Download Skia Binary
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          # Use a verified version and the exact hash for the wasm target
-          TAG="0.62.0"
-          HASH="8cf4841aefdb295709e9"
-          FILE="skia-binaries-$HASH-wasm32-unknown-emscripten-freetype-textlayout-webpd.tar.gz"
-          URL="https://github.com"
-          
-          echo "Attempting download from: $URL"
-          
-          # -f makes curl fail (exit code 22) if the URL is a 404, stopping the script before tar runs
-          curl -f -L -o skia-binaries.tar.gz "$URL"
-          
-          # Verification before extraction
-          if file skia-binaries.tar.gz | grep -q 'gzip compressed data'; then
-            mkdir -p ./skia-lib
-            tar -xzf skia-binaries.tar.gz -C ./skia-lib
-            echo "Successfully extracted Skia."
-            # Debug: See exactly where libskia.a landed
-            find ./skia-lib -name "libskia.a"
-          else
-            echo "ERROR: File is not a gzip. Content of downloaded file:"
-            cat skia-binaries.tar.gz | head -n 20
+          # Use gh to download the exact file from the rust-skia repo
+          # This handles auth and redirects better than a raw curl
+          gh release download 0.93.1 \
+            --repo rust-skia/skia-binaries \
+            --pattern "skia-binaries-319323662b1685a112f5-wasm32-unknown-emscripten-gl-jpegd-jpege-pdf-svg-textlayout-webpd-webpe.tar.gz" \
+            --output skia.tar.gz
+
+          # Verify it's a real archive (prevents the 'not in gzip format' error)
+          if ! file skia.tar.gz | grep -q 'gzip compressed data'; then
+            echo "ERROR: Downloaded file is not a valid gzip!"
             exit 1
           fi
 
+          mkdir -p ./skia-lib
+          tar -xzf skia.tar.gz -C ./skia-lib
+
+      - name: Verify Paths
+        run: |
+          echo "Looking for libskia.a..."
+          find ./skia-lib -name "libskia.a"
+          echo "Looking for SkCanvas.h..."
+          find ./skia-lib -name "SkCanvas.h"
 
 
       - name: Compile C++ to Wasm
