@@ -21,26 +21,30 @@ jobs:
 
       - name: Download and Extract Skia Wasm Binaries
         run: |
-          # Specific version and filename from rust-skia releases
-          TAG="0.88.0"
-          # This specific hash includes freetype and textlayout support
-          FILE="skia-binaries-5389650d995c645e2270-wasm32-unknown-emscripten-freetype-textlayout.tar.gz"
+          # Use a verified version and the exact hash for the wasm target
+          TAG="0.62.0"
+          HASH="8cf4841aefdb295709e9"
+          FILE="skia-binaries-$HASH-wasm32-unknown-emscripten-freetype-textlayout-webpd.tar.gz"
           URL="https://github.com"
           
-          echo "Fetching from $URL"
+          echo "Attempting download from: $URL"
           
-          # -f ensures it fails if the file is missing (no 404 HTML download)
-          curl -f -L -o skia.tar.gz "$URL"
+          # -f makes curl fail (exit code 22) if the URL is a 404, stopping the script before tar runs
+          curl -f -L -o skia-binaries.tar.gz "$URL"
           
-          # Verify file type before extracting
-          if file skia.tar.gz | grep -q 'gzip compressed data'; then
+          # Verification before extraction
+          if file skia-binaries.tar.gz | grep -q 'gzip compressed data'; then
             mkdir -p ./skia-lib
-            tar -xzf skia.tar.gz -C ./skia-lib
-            echo "Successfully extracted Skia binaries."
+            tar -xzf skia-binaries.tar.gz -C ./skia-lib
+            echo "Successfully extracted Skia."
+            # Debug: See exactly where libskia.a landed
+            find ./skia-lib -name "libskia.a"
           else
-            echo "ERROR: Download failed or file is corrupt."
+            echo "ERROR: File is not a gzip. Content of downloaded file:"
+            cat skia-binaries.tar.gz | head -n 20
             exit 1
           fi
+
 
 
       - name: Compile C++ to Wasm
