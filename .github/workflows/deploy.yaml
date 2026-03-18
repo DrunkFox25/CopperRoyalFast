@@ -43,7 +43,7 @@ jobs:
         run: |
           git clone --depth 1 --filter=blob:none --sparse https://github.com/google/skia.git ./skia-lib/skia
           cd ./skia-lib/skia
-          git sparse-checkout set include include/core include/gpu include/config include/utils
+          git sparse-checkout set include
 
       - name: Verify Paths
         run: |
@@ -63,6 +63,7 @@ jobs:
           
           emcc src/*.cpp \
             -I./skia-lib/skia \
+            -I./skia-lib/skia/include/gpu \
             -I./skia-lib/skia/include/core \
             -I./skia-lib/skia/include/config \
             -I./skia-lib/skia/include/utils \
