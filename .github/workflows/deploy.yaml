@@ -38,6 +38,13 @@ jobs:
 
           mkdir -p ./skia-lib
           tar -xzf skia.tar.gz -C ./skia-lib
+      
+      - name: Copy Skia Include Directory
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse https://github.com ./skia-lib/skia
+          cd ./skia-lib/skia
+          git sparse-checkout set include
+          rm -rf .git
 
       - name: Verify Paths
         run: |
@@ -45,6 +52,7 @@ jobs:
           find ./skia-lib -name "libskia.a"
           echo "Looking for SkCanvas.h..."
           find ./skia-lib -name "SkCanvas.h"
+
 
 
       - name: Compile C++ to Wasm
