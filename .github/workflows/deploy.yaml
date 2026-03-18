@@ -57,13 +57,15 @@ jobs:
           emcc src/*.cpp \
             -I./skia-lib/skia/include \
             -I./skia-lib/skia/include/core \
-            -L./skia-lib/skia/out/Release \
+            -I./skia-lib/skia/include/config \
+            -I./skia-lib/skia/include/utils \
+            -L./skia-lib/skia \
             -lskia \
-            -s WASM=1 \
-            -s USE_WEBGL2=1 \
-            -s ALLOW_MEMORY_GROWTH=1 \
+            -s WASM=1 -s USE_WEBGL2=1 -s ALLOW_MEMORY_GROWTH=1 \
+            -DSK_GL -DSK_GANESH -DSK_PDF -DSK_SHAPER_HARFBUZZ_AVAILABLE -DSK_UNICODE_ICU_AVAILABLE \
             --bind \
             -o dist/skia_app.js
+
 
 
       - name: Deploy to GitHub Pages
