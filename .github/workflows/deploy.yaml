@@ -18,56 +18,27 @@ jobs:
         uses: mymindstorm/setup-emsdk@v14
         with:
           version: 3.1.51
-     - name: Fetch Skia Binaries
+
+      - name: Download and Extract Skia Wasm Binaries
         run: |
-          echo "Searching for valid Skia Wasm binary in recent releases..."
+          # Set the version you want
+          SKIA_VERSION="0.79.0"
           
-          # 1. Get recent tags (INCLUDING pre-releases)
-          # bumped limit to 20 to be safe
-          TAGS=$(gh release list --repo rust-skia/skia-binaries --limit 20 --exclude-drafts --json tagName -q '.[].tagName')
+          # Download the tarball from rust-skia releases
+          curl -L -o skia-binaries.tar.gz \
+            https://github.com
           
-          ASSET_URL=""
+          # Create a directory and extract
+          mkdir -p ./skia-lib
+          tar -xzf skia-binaries.tar.gz -C ./skia-lib
           
-          # 2. Loop through tags to find one with a Wasm asset
-          for TAG in $TAGS; do
-            echo "Checking release: $TAG"
-            
-            # Search for the specific emscripten binary
-            # We use 'head -n 1' because sometimes there might be multiple variants (e.g. gl/no-gl), picking the first is usually safe for linking
-            URL=$(gh release view --repo rust-skia/skia-binaries "$TAG" --json assets \
-              -q '.assets[] | select(.name | contains("wasm32-unknown-emscripten")) | .url' | head -n 1)
-            
-            if [ -n "$URL" ]; then
-              echo "✅ Found Wasm binary in release $TAG"
-              echo "URL: $URL"
-              ASSET_URL="$URL"
-              break
-            else
-              echo "❌ No Wasm binary in $TAG, skipping..."
-            fi
-          done
-          
-          # 3. Fail if still nothing found
-          if [ -z "$ASSET_URL" ]; then
-            echo "Error: Checked last 20 releases and found no 'wasm32-unknown-emscripten' binaries."
-            echo "Possible cause: rust-skia binaries might be temporarily unavailable or naming conventions changed."
-            exit 1
-          fi
-          
-          # 4. Download and Extract
-          echo "Downloading Skia from $ASSET_URL"
-          mkdir -p third_party/skia
-          curl -L "$ASSET_URL" -o skia.tar.gz
-          tar -xzf skia.tar.gz -C third_party/skia
-          
-          # 5. Fix directory structure (Handle cases where tarball creates a 'skia' subdir)
-          if [ -d "third_party/skia/skia" ]; then
-            echo "Flattening directory structure..."
-            mv third_party/skia/skia/* third_party/skia/
-            rmdir third_party/skia/skia
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # List files to verify (you should see libskia.a and headers)
+          ls -R ./skia-lib
+
+      - name: Verify Binary
+        run: |
+          # Check if the static library exists
+          test -f ./skia-lib/libskia.a && echo "Skia binary found!"
 
 
       - name: Compile C++ to Wasm
@@ -77,16 +48,17 @@ jobs:
           # Move your existing HTML/CSS into dist
           cp index.html dist/ 2>/dev/null || : 
           
-
           emcc src/*.cpp \
-            -Ithird_party/skia/include \
-            -Lthird_party/skia/out/Release \
-            -lskia -lGL \
+            -I./skia-lib/skia/include \
+            -I./skia-lib/skia/include/core \
+            -L./skia-lib/skia/out/Release \
+            -lskia \
             -s WASM=1 \
             -s USE_WEBGL2=1 \
             -s ALLOW_MEMORY_GROWTH=1 \
             --bind \
             -o dist/skia_app.js
+
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
