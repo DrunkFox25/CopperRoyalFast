@@ -44,7 +44,6 @@ jobs:
           git clone --depth 1 --filter=blob:none --sparse https://github.com ./skia-lib/skia
           cd ./skia-lib/skia
           git sparse-checkout set include
-          rm -rf .git
 
       - name: Verify Paths
         run: |
@@ -63,7 +62,7 @@ jobs:
           cp index.html dist/ 2>/dev/null || : 
           
           emcc src/*.cpp \
-            -I./skia-lib/skia/include \
+            -I./skia-lib/skia \
             -I./skia-lib/skia/include/core \
             -I./skia-lib/skia/include/config \
             -I./skia-lib/skia/include/utils \
